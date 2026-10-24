@@ -1,0 +1,59 @@
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: eatfood
+      POSTGRES_PASSWORD: eatfood_local
+      POSTGRES_DB: eatfood
+    ports: ["127.0.0.1:54329:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eatfood -d eatfood"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  migrate:
+    build: .
+    command: ["node", "node_modules/tsx/dist/cli.mjs", "scripts/setup.ts"]
+    environment: &appenv
+      DATABASE_URL: postgres://eatfood:eatfood_local@db:5432/eatfood
+      APP_URL: ${APP_URL:-http://localhost:3080}
+      DEMO_MODE: "true"
+      WHATSAPP_ORDER_SECRET: ${WHATSAPP_ORDER_SECRET:-local-demo-change-before-sharing}
+      WHATSAPP_VERIFY_TOKEN: ${WHATSAPP_VERIFY_TOKEN:-}
+      WHATSAPP_APP_SECRET: ${WHATSAPP_APP_SECRET:-}
+      WHATSAPP_ACCESS_TOKEN: ${WHATSAPP_ACCESS_TOKEN:-}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WHATSAPP_WABA_ID: ${WHATSAPP_WABA_ID:-}
+      WHATSAPP_GRAPH_VERSION: ${WHATSAPP_GRAPH_VERSION:-v25.0}
+      WHATSAPP_RESTAURANT_ID: ${WHATSAPP_RESTAURANT_ID:-r_demo}
+    depends_on:
+      db: { condition: service_healthy }
+  web:
+    build: .
+    ports: ["127.0.0.1:3080:3000"]
+    environment: *appenv
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+  worker:
+    build: .
+    command: ["node", "node_modules/tsx/dist/cli.mjs", "scripts/worker.ts"]
+    environment: *appenv
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+volumes:
+  postgres_data:

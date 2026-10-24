@@ -1,0 +1,109 @@
+{
+  "checkedAt": "2026-10-19T19:12:42.137Z",
+  "templates": [
+    {
+      "name": "eatfood_order_received_v1",
+      "kind": "order_submitted",
+      "id": "1606353754314580",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_order_accepted_v1",
+      "kind": "accepted",
+      "id": "2943996575987676",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_pickup_ready_v1",
+      "kind": "ready",
+      "id": "2447557069104393",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_out_for_delivery_v1",
+      "kind": "out_for_delivery",
+      "id": "1462824252454790",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_order_completed_v1",
+      "kind": "completed",
+      "id": "4790770984484774",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_order_rejected_v1",
+      "kind": "rejected",
+      "id": "1880293766662483",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_order_cancelled_v1",
+      "kind": "cancelled",
+      "id": "1579120130184885",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_delivery_failed_v1",
+      "kind": "delivery_failed",
+      "id": "1423494793298348",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_payment_received_v1",
+      "kind": "payment_received",
+      "id": "3895107520638146",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_payment_failed_v1",
+      "kind": "payment_failed",
+      "id": "1432906031593696",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_refund_pending_v1",
+      "kind": "refund_pending",
+      "id": "4535824413359290",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_refund_completed_v1",
+      "kind": "refunded",
+      "id": "1143535011444187",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    },
+    {
+      "name": "eatfood_order_update_v1",
+      "kind": "order_update",
+      "id": "1125281337088229",
+      "status": "PENDING",
+      "category": "UTILITY",
+      "bodyMatches": true
+    }
+  ]
+}
