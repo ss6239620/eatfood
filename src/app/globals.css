@@ -690,6 +690,23 @@ small {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
+.menu-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin: 18px 0;
+}
+.dish-image-preview {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+.drawer form {
+  margin-top: 22px;
+}
 .food-card {
   background: white;
   border: 1px solid #e8e6dd;

@@ -22,6 +22,7 @@ export type Data = {
     settings: RestaurantSettings;
   };
   menu: MenuItem[];
+  categories: { id: string; name: string; position: number }[];
   orders: Order[];
   jobs: Job[];
   summary: {

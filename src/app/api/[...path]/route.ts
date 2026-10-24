@@ -188,6 +188,8 @@ async function handle(req: Request, context: Context) {
     }
     if (method === "GET" && route === "dashboard") {
       const { restaurant, menu } = await catalog(staff.restaurant_id);
+      const categories =
+        await sql`SELECT id,name,position FROM menu_categories WHERE restaurant_id=${staff.restaurant_id} ORDER BY position,name`;
       const orders =
         await sql`SELECT * FROM orders WHERE restaurant_id=${staff.restaurant_id} ORDER BY created_at DESC LIMIT 500`;
       const jobs =
@@ -200,11 +202,53 @@ async function handle(req: Request, context: Context) {
         staff,
         restaurant,
         menu,
+        categories,
         orders,
         jobs,
         summary: { ...summary, ...payments },
         syncedAt: new Date().toISOString(),
       });
+    }
+    if (method === "POST" && route === "menu/categories") {
+      await requireStaff(true);
+      const { name } = z
+        .object({ name: z.string().trim().min(1).max(60) })
+        .parse(await req.json());
+      const id = randomUUID();
+      try {
+        await sql`INSERT INTO menu_categories(id,restaurant_id,name,position) VALUES(${id},${staff.restaurant_id},${name},(SELECT coalesce(max(position)+1,0) FROM menu_categories WHERE restaurant_id=${staff.restaurant_id}))`;
+      } catch (error) {
+        if ((error as { code?: string }).code === "23505")
+          throw new AppError(409, "That category already exists.");
+        throw error;
+      }
+      return json({ id, name });
+    }
+    if (method === "POST" && route === "menu") {
+      await requireStaff(true);
+      const body = z
+        .object({
+          name: z.string().trim().min(1).max(100),
+          description: z.string().max(500).default(""),
+          category: z.string().trim().min(1).max(60),
+          price: z.number().int().min(0).max(10000000),
+          vegetarian: z.boolean().default(true),
+          image: z
+            .string()
+            .max(2_000_100)
+            .regex(
+              /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/,
+            )
+            .optional(),
+        })
+        .parse(await req.json());
+      const [category] =
+        await sql`SELECT id FROM menu_categories WHERE restaurant_id=${staff.restaurant_id} AND name=${body.category}`;
+      if (!category) throw new AppError(422, "Choose a menu category first.");
+      const id = randomUUID();
+      await sql`INSERT INTO menu_items(id,restaurant_id,name,description,category,price,image,vegetarian,available,options,position) VALUES(${id},${staff.restaurant_id},${body.name},${body.description},${body.category},${body.price},${body.image || "/food/jamun.jpg"},${body.vegetarian},true,'[]'::jsonb,(SELECT coalesce(max(position)+1,0) FROM menu_items WHERE restaurant_id=${staff.restaurant_id}))`;
+      await sql`INSERT INTO audit_events(id,restaurant_id,actor,action,details) VALUES(${randomUUID()},${staff.restaurant_id},${staff.id},'menu_item_created',${JSON.stringify({ id, ...body })}::jsonb)`;
+      return json({ id }, 201);
     }
     if (path[0] === "orders" && path[1]) {
       const id = path[1];
@@ -267,13 +311,20 @@ async function handle(req: Request, context: Context) {
           price: z.number().int().min(0).max(10000000).optional(),
           name: z.string().min(1).max(100).optional(),
           description: z.string().max(500).optional(),
+          image: z
+            .string()
+            .max(2_000_100)
+            .regex(
+              /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/,
+            )
+            .optional(),
         })
         .parse(await req.json());
       const [item] =
         await sql`SELECT * FROM menu_items WHERE id=${path[1]} AND restaurant_id=${staff.restaurant_id}`;
       if (!item) throw new AppError(404, "Menu item not found.");
       await sql.begin(async (tx) => {
-        await tx`UPDATE menu_items SET available=${body.available ?? item.available},price=${body.price ?? item.price},name=${body.name ?? item.name},description=${body.description ?? item.description} WHERE id=${item.id} AND restaurant_id=${staff.restaurant_id}`;
+        await tx`UPDATE menu_items SET available=${body.available ?? item.available},price=${body.price ?? item.price},name=${body.name ?? item.name},description=${body.description ?? item.description},image=${body.image ?? item.image} WHERE id=${item.id} AND restaurant_id=${staff.restaurant_id}`;
         await tx`INSERT INTO audit_events(id,restaurant_id,actor,action,details) VALUES(${randomUUID()},${staff.restaurant_id},${staff.id},'menu_updated',${JSON.stringify({ id: item.id, ...body })}::jsonb)`;
       });
       return json({ ok: true });

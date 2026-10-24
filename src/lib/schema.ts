@@ -25,6 +25,12 @@ export const menuItems = pgTable("menu_items", {
   options: jsonb().notNull(),
   position: integer().notNull(),
 });
+export const menuCategories = pgTable("menu_categories", {
+  id: text().primaryKey(),
+  restaurantId: text("restaurant_id").notNull(),
+  name: text().notNull(),
+  position: integer().notNull().default(0),
+});
 export const orders = pgTable("orders", {
   id: text().primaryKey(),
   restaurantId: text("restaurant_id").notNull(),
